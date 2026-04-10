@@ -1,0 +1,33 @@
+# ============================================================
+# PatchCore VisA – Training / Evaluation Requirements
+# (install inside Kaggle or a local GPU environment)
+# ============================================================
+
+# Deep learning
+torch>=2.0.0
+torchvision>=0.15.0
+
+# Image processing
+opencv-python>=4.7.0
+Pillow>=9.4.0
+scikit-image>=0.20.0
+
+# Machine learning
+scikit-learn>=1.2.0
+scipy>=1.10.0
+
+# Numerical
+numpy>=1.23.0
+
+# Serialization
+joblib>=1.2.0
+
+# Configuration
+pyyaml>=6.0
+
+# Progress bars
+tqdm>=4.64.0
+
+# Jupyter / notebook (for Kaggle notebook)
+ipykernel>=6.0.0
+nbformat>=5.7.0
