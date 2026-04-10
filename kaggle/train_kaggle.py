@@ -330,14 +330,18 @@ def train_category(
 
     # ── Create and fit model ───────────────────────────────────────────────────
     try:
-        model = create_model(
-            variant,
-            coreset_ratio=model_cfg["coreset_ratio"],
-            k=model_cfg["k_neighbors"],
-            image_size=cfg["dataset"]["image_size"],
-            pca_components=model_cfg.get("fr_pca_components", 256),
-            alpha=model_cfg.get("fr_alpha", 0.5),
-        )
+        # Build kwargs that are common to all variants
+        model_kwargs: Dict[str, Any] = {
+            "coreset_ratio": model_cfg["coreset_ratio"],
+            "knn_k": model_cfg["k_neighbors"],
+            "image_size": cfg["dataset"]["image_size"],
+        }
+        # FR-specific kwargs – only passed to variants that accept them
+        if variant in ("fr", "fr_mask"):
+            model_kwargs["pca_components"] = model_cfg.get("fr_pca_components", 256)
+            model_kwargs["alpha"] = model_cfg.get("fr_alpha", 0.5)
+
+        model = create_model(variant, **model_kwargs)
         logger.info("    Fitting memory bank …")
         model.fit(train_loader, device=device)
     except Exception as exc:  # noqa: BLE001
