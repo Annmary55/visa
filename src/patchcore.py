@@ -480,10 +480,15 @@ class PatchCoreBase:
 
     def load(self, path: str | Path) -> None:
         """Load the memory bank and configuration from a saved directory."""
-        path = Path(path)
+        path = Path(path).resolve()
+        if not path.is_dir():
+            raise FileNotFoundError(f"Model directory not found: {path}")
         data = np.load(path / "memory_bank.npz")
         self.memory_bank = data["memory_bank"]
-        config = json.loads((path / "config.json").read_text())
+        config_path = path / "config.json"
+        if not config_path.is_file():
+            raise FileNotFoundError(f"config.json not found in: {path}")
+        config = json.loads(config_path.read_text(encoding="utf-8"))
         self.image_size = config["image_size"]
         self.coreset_ratio = config["coreset_ratio"]
         self.knn_k = config["knn_k"]

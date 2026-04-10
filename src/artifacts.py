@@ -107,10 +107,12 @@ def load_thresholds(path: str | Path) -> Dict[str, Any]:
     -------
     dict
     """
-    path = Path(path)
-    if not path.exists():
+    path = Path(path).resolve()
+    if not path.is_file():
         raise FileNotFoundError(f"Thresholds file not found: {path}")
-    return json.loads(path.read_text())
+    if path.suffix.lower() != ".json":
+        raise ValueError(f"Expected a .json thresholds file, got: {path.suffix!r}")
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 # ── Metrics summary ────────────────────────────────────────────────────────────
@@ -217,7 +219,14 @@ def load_model_artifacts(
     from .patchcore import create_model  # local import to avoid circular deps
     from .calibration import ScoreCalibrator
 
-    model_dir = Path(model_dir)
+    model_dir = Path(model_dir).resolve()
+    # Validate that variant is in the known-safe list to prevent path traversal
+    if variant not in VARIANTS:
+        raise ValueError(f"Unknown variant {variant!r}; expected one of {VARIANTS}")
+    # Validate that category is in the known-safe list to prevent path traversal
+    if category not in CATEGORIES:
+        raise ValueError(f"Unknown category {category!r}; expected one of {CATEGORIES}")
+
     variant_dir = model_dir / variant
     category_dir = variant_dir / category
 
@@ -238,7 +247,7 @@ def load_model_artifacts(
     # Load calibrator
     calibrator: Optional[ScoreCalibrator] = None
     cal_path = variant_dir / "calibrators" / f"{category}.pkl"
-    if cal_path.exists():
+    if cal_path.is_file():
         calibrator = ScoreCalibrator.load(cal_path)
 
     return {

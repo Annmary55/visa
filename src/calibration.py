@@ -156,7 +156,15 @@ class ScoreCalibrator:
         """
         import joblib  # lazy import
 
-        payload = joblib.load(Path(path))
+        path = Path(path).resolve()
+        # Validate the file exists and has the expected extension before loading
+        if not path.is_file():
+            raise FileNotFoundError(f"Calibrator file not found: {path}")
+        if path.suffix.lower() != ".pkl":
+            raise ValueError(
+                f"Expected a .pkl calibrator file, got: {path.suffix!r}"
+            )
+        payload = joblib.load(path)  # noqa: S301 – loading trusted local artifacts
         instance = cls(method=payload["method"])
         instance._model = payload["model"]
         logger.info("Loaded calibrator from %s (method=%s)", path, instance.method)

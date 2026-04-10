@@ -455,12 +455,12 @@ def _collect_test_images(test_data_dir: str, category: str, img_type: str) -> li
     test_data_dir:
         Root test directory (contains per-category sub-directories).
     category:
-        VisA category name.
+        VisA category name (must be one of the 12 known categories).
     img_type:
         One of ``"Normal"``, ``"Anomaly"``, or ``"All"``.
     """
-    base = Path(test_data_dir) / category
-    if not base.exists():
+    # Validate category against the known list to prevent directory traversal
+    if category not in CATEGORIES:
         return []
 
     sub_dirs_map = {
@@ -470,10 +470,15 @@ def _collect_test_images(test_data_dir: str, category: str, img_type: str) -> li
     }
     sub_dirs = sub_dirs_map.get(img_type, ["good", "bad"])
 
+    base = Path(test_data_dir).resolve() / category
+    if not base.is_dir():
+        return []
+
     images: list[Path] = []
     for sub in sub_dirs:
+        # sub is always from the fixed map above, so no traversal risk
         sub_path = base / sub
-        if sub_path.exists():
+        if sub_path.is_dir():
             for ext in ("*.jpg", "*.jpeg", "*.png", "*.JPG", "*.PNG"):
                 images.extend(sorted(sub_path.glob(ext)))
     return sorted(images)
@@ -852,9 +857,15 @@ def tab_metrics_dashboard(cfg: dict) -> None:
     """
     st.header("Metrics Dashboard")
 
-    thr_path = Path(cfg["artifacts_dir"]) / cfg["variant"] / "thresholds.json"
+    # Validate variant before constructing path (prevents path traversal)
+    variant = cfg["variant"]
+    if variant not in VARIANTS:
+        st.error(f"Unknown model variant: {variant!r}")
+        return
 
-    if not thr_path.exists():
+    thr_path = Path(cfg["artifacts_dir"]).resolve() / variant / "thresholds.json"
+
+    if not thr_path.is_file():
         st.info(
             f"No thresholds file found at `{thr_path}`. "
             "Train and export models first."
