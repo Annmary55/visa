@@ -207,7 +207,7 @@ def save_image_results(
     # Annotate overlay with metadata
     gt_str = "anomaly" if label == 1 else "normal"
     pred_str = "anomaly" if pred_label == 1 else "normal"
-    correct = "✓" if label == pred_label else "✗"
+    correct = "OK" if label == pred_label else "FAIL"
     annotation_lines = [
         f"{category} [{variant}]  {correct}",
         f"score={image_score:.4f}  thr={thr_img:.4f}",

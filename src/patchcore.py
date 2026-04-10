@@ -533,9 +533,10 @@ def _batch_knn_distances(
         end = min(start + chunk_size, q)
         chunk = queries[start:end]  # (C, D)
         # Squared Euclidean distance via expansion: ||q-b||^2 = ||q||^2 + ||b||^2 - 2<q,b>
-        q_sq = (chunk ** 2).sum(axis=1, keepdims=True)          # (C, 1)
-        b_sq = (bank ** 2).sum(axis=1, keepdims=True).T         # (1, M)
-        cross = chunk @ bank.T                                    # (C, M)
+        # einsum avoids materialising the full squared arrays, improving numerical stability.
+        q_sq = np.einsum("ij,ij->i", chunk, chunk)[:, None]  # (C, 1)
+        b_sq = np.einsum("ij,ij->i", bank, bank)[None, :]    # (1, M)
+        cross = chunk @ bank.T                                 # (C, M)
         sq_dists = np.maximum(q_sq + b_sq - 2.0 * cross, 0.0)   # (C, M)
 
         actual_k = min(k, sq_dists.shape[1])

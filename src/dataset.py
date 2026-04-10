@@ -214,7 +214,16 @@ def _split_anomaly(
     rng = random.Random(seed)
     shuffled = list(paths)
     rng.shuffle(shuffled)
-    n_val = max(1, int(len(shuffled) * val_ratio))
+    n_total = len(shuffled)
+    n_val = max(1, int(n_total * val_ratio))
+    if n_total < 5:
+        import warnings
+        warnings.warn(
+            f"Only {n_total} anomaly image(s) found; the val/test split ratio "
+            f"of {val_ratio:.0%}/{1-val_ratio:.0%} cannot be fully honoured.",
+            UserWarning,
+            stacklevel=3,
+        )
     return shuffled[:n_val], shuffled[n_val:]
 
 

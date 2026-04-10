@@ -61,13 +61,13 @@ def compute_image_metrics(
         results["image_auroc"] = float("nan")
         results["image_auprc"] = float("nan")
         results["fpr_at_tpr95"] = float("nan")
-        results[f"tpr_at_fpr{int(fpr_target*100)}"] = float("nan")
+        results["tpr_at_fpr_target"] = float("nan")
         return results
 
     results["image_auroc"] = float(roc_auc_score(labels, scores))
     results["image_auprc"] = float(average_precision_score(labels, scores))
     results["fpr_at_tpr95"] = float(_fpr_at_tpr(scores, labels, tpr_target=0.95))
-    results[f"tpr_at_fpr{int(fpr_target*100)}"] = float(
+    results["tpr_at_fpr_target"] = float(
         _tpr_at_fpr(scores, labels, fpr_target=fpr_target)
     )
     return results
