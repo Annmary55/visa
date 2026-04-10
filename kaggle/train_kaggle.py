@@ -330,7 +330,9 @@ def train_category(
 
     # ── Create and fit model ───────────────────────────────────────────────────
     try:
-        # Build kwargs that are common to all variants
+        # Build kwargs that are common to all variants.
+        # Config uses 'k_neighbors' (human-readable); the PatchCoreBase
+        # constructor calls the same parameter 'knn_k' (internal style).
         model_kwargs: Dict[str, Any] = {
             "coreset_ratio": model_cfg["coreset_ratio"],
             "knn_k": model_cfg["k_neighbors"],
