@@ -1,0 +1,33 @@
+# ============================================================
+# PatchCore VisA – Windows Streamlit UI Requirements
+# Install with: pip install -r requirements_ui.txt
+# ============================================================
+
+# Web UI
+streamlit>=1.28.0
+
+# Deep learning (CPU-only is sufficient for inference)
+torch>=2.0.0
+torchvision>=0.15.0
+
+# Image processing
+opencv-python>=4.7.0
+Pillow>=9.4.0
+scikit-image>=0.20.0
+
+# Machine learning (calibrators)
+scikit-learn>=1.2.0
+scipy>=1.10.0
+
+# Numerical
+numpy>=1.23.0
+
+# Serialization
+joblib>=1.2.0
+
+# Plotting
+plotly>=5.13.0
+
+# Utilities
+pyyaml>=6.0
+tqdm>=4.64.0
