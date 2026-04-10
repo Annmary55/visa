@@ -1,0 +1,112 @@
+# PatchCore VisA Training Configuration
+# ──────────────────────────────────────
+# This file controls every tuneable hyperparameter for the training pipeline.
+# Edit values here rather than modifying source code.  All keys are read by
+# train_kaggle.py and the kaggle notebook.
+
+# ── Dataset ────────────────────────────────────────────────────────────────────
+dataset:
+  # Spatial size (pixels) for both height and width after resizing.
+  # WideResNet-50-2 accepts any multiple of 32; 256 is the VisA standard.
+  image_size: 256
+
+  # The 12 VisA product categories to train/evaluate.
+  # Remove entries here to skip specific categories.
+  categories:
+    - candle
+    - capsules
+    - cashew
+    - chewinggum
+    - fryum
+    - macaroni1
+    - macaroni2
+    - pcb1
+    - pcb2
+    - pcb3
+    - pcb4
+    - pipe_fryum
+
+  # Fraction of normal images allocated to the training split.
+  # The complementary fraction goes to validation.
+  train_val_split: 0.8
+
+  # Fixed random seed for reproducible train/val/test splits.
+  random_seed: 42
+
+  # Images per mini-batch for both feature extraction and scoring.
+  batch_size: 32
+
+# ── Model ──────────────────────────────────────────────────────────────────────
+model:
+  # ImageNet-pretrained backbone used for feature extraction.
+  # Only wide_resnet50_2 is currently wired up; kept here for documentation.
+  backbone: wide_resnet50_2
+
+  # Intermediate layers whose feature maps are combined into patch descriptors.
+  # layer2 (stride-8, 512-ch) + layer3 (stride-16, 1024-ch) → 1536-ch concat.
+  layers:
+    - layer2
+    - layer3
+
+  # Kernel size of the average-pooling step that aggregates neighbouring patch
+  # features.  3 = 3×3 neighbourhood with padding=1 (no spatial shrinkage).
+  neighborhood_size: 3
+
+  # Fraction of all collected patches kept in the memory bank after greedy
+  # k-centre coreset sub-sampling.  Lower = faster inference, higher = better
+  # coverage.
+  coreset_ratio: 0.1
+
+  # Number of nearest neighbours used to compute the patch anomaly score.
+  k_neighbors: 5
+
+  # (FR variants only) Number of PCA components for the low-rank reconstruction.
+  # Increase for richer reconstructions at the cost of more memory.
+  fr_pca_components: 256
+
+  # (FR variants only) Blend weight between kNN distance (α) and PCA
+  # reconstruction error (1−α).  0.5 = equal contribution.
+  fr_alpha: 0.5
+
+# ── Decision thresholds ────────────────────────────────────────────────────────
+thresholds:
+  # Target false-positive rate for selecting the image-level decision threshold.
+  # Lower = more conservative (fewer false alarms, potentially more misses).
+  fpr_target: 0.01
+
+  # Target false-positive rate for the pixel-level decision threshold.
+  pixel_fpr_target: 0.005
+
+# ── Training / evaluation runtime ─────────────────────────────────────────────
+training:
+  # Torch device selection.
+  # 'auto' → use CUDA if available, else CPU.
+  # 'cuda' / 'cpu' → force a specific device.
+  device: auto
+
+  # DataLoader worker processes.  Set to 0 to disable multiprocessing (useful
+  # when debugging or when the environment limits forking).
+  num_workers: 4
+
+  # Whether to write heatmap PNG files for validation images.
+  save_heatmaps_val: true
+
+  # Whether to write heatmap PNG files for test images.
+  save_heatmaps_test: true
+
+  # Maximum number of images per category for which heatmaps are saved.
+  # Saving all images can easily exhaust Kaggle's 20 GB disk quota.
+  max_heatmaps_per_category: 20
+
+# ── Export / packaging ─────────────────────────────────────────────────────────
+export:
+  # Root directory where all model artefacts, thresholds, and metrics are
+  # written.  Under Kaggle this should be inside /kaggle/working/.
+  output_dir: /kaggle/working/exports
+
+  # Name of the final ZIP bundle placed inside output_dir.
+  zip_name: patchcore_visa_exports.zip
+
+  # When true, raw ROC curve arrays (fpr, tpr) are saved alongside the metrics
+  # summary JSON so that ROC plots can be reproduced without re-running scoring.
+  save_roc_data: true
